@@ -53,7 +53,7 @@ void png_write_from_matrix(char* file_name, matrix* A) {
 void matrix_print(matrix* A) {
   for (size_t i = 0; i < A->rows; ++i) {
     for (size_t j = 0; j < A->cols; ++j) {
-      printf("%f ", A->content[i][j]);
+      printf("%lf ", A->content[i][j]);
     }
     printf("\n");
   }

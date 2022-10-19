@@ -13,6 +13,38 @@ matrix* generate_weights(size_t rows, size_t cols) {
   return weights;
 }
 
+void load_weights(char* path, matrix* dest_encode, matrix* dest_decode) {
+  // Read weights
+  FILE* fp = fopen(path, "rt");
+  for (size_t row = 0; row < dest_encode->rows; ++row) {
+    for (size_t col = 0; col < dest_encode->cols; ++col) {
+      fscanf(fp, "%lf", &dest_encode->content[row][col]);
+    }
+  }
+  for (size_t row = 0; row < dest_decode->rows; ++row) {
+    for (size_t col = 0; col < dest_decode->cols; ++col) {
+      fscanf(fp, "%lf", &dest_decode->content[row][col]);
+    }
+  }
+  fclose(fp);
+}
+
+int save_weights(char* path, matrix* src_encode, matrix* src_decode) {
+  FILE* fp = fopen(path, "w+t");
+  for (size_t row = 0; row < src_encode->rows; ++row) {
+    for (size_t col = 0; col < src_encode->cols; ++col) {
+      fprintf(fp, "%lf ", src_encode->content[row][col]);
+    }
+  }
+  for (size_t row = 0; row < src_decode->rows; ++row) {
+    for (size_t col = 0; col < src_decode->cols; ++col) {
+      fprintf(fp, "%lf ", src_decode->content[row][col]);
+    }
+  }
+  fclose(fp);
+  return 0;
+}
+
 size_t get_num_of_h_splitted(matrix* A, size_t cols) {
   return ceil(A->cols/(double)cols);
 }

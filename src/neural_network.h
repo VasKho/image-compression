@@ -6,6 +6,8 @@
 #include <math.h>
 
 matrix* generate_weights(size_t rows, size_t cols);
+void load_weights(char* path, matrix* dest_encode, matrix* dest_decode);
+int save_weights(char* path, matrix* src_encode, matrix* src_decode);
 size_t get_num_of_h_splitted(matrix* A, size_t cols);
 size_t get_num_of_v_splitted(matrix* A, size_t rows);
 size_t get_num_of_parts_splitted(matrix* A, size_t rows, size_t cols);
