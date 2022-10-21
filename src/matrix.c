@@ -73,6 +73,7 @@ matrix* matrix_reshape(matrix* A, size_t new_rows, size_t new_cols) {
       matrix_set_element(new_matrix, new_row, new_col, A->content[old_row][old_col++]);
     }
   }
+  return new_matrix;
 }
 
 matrix* matrix_transpose(matrix* A) {
