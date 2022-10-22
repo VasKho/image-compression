@@ -1,20 +1,22 @@
 #ifndef _NEURAL_NETWORK_H_
 #define _NEURAL_NETWORK_H_
 
-#include "matrix.h"
+#include <stdio.h>
+#include <gsl/gsl_matrix.h>
 #include <time.h>
 #include <math.h>
+#include "utils.h"
 
-matrix* generate_weights(size_t rows, size_t cols);
-void load_weights(char* path, matrix* dest_encode, matrix* dest_decode);
-int save_weights(char* path, matrix* src_encode, matrix* src_decode);
-size_t get_num_of_h_splitted(matrix* A, size_t cols);
-size_t get_num_of_v_splitted(matrix* A, size_t rows);
-size_t get_num_of_parts_splitted(matrix* A, size_t rows, size_t cols);
-matrix** split_image(matrix* img, size_t rows, size_t cols);
-matrix* unite_image(matrix** arr, size_t rows, size_t cols);
-matrix** encode(matrix* img, matrix* weights, size_t rows, size_t cols);
-matrix* decode(matrix** compressed, matrix* src, matrix* weights, size_t rows, size_t cols);
-double train(matrix* img, matrix* encode_weights, matrix* decode_weights, size_t m, size_t n);
+gsl_matrix* generate_weights(size_t rows, size_t cols);
+void load_weights(char* path, gsl_matrix* dest_encode, gsl_matrix* dest_decode);
+int save_weights(char* path, gsl_matrix* src_encode, gsl_matrix* src_decode);
+size_t get_num_of_h_splitted(gsl_matrix* A, size_t cols);
+size_t get_num_of_v_splitted(gsl_matrix* A, size_t rows);
+size_t get_num_of_parts_splitted(gsl_matrix* A, size_t rows, size_t cols);
+gsl_matrix** split_image(gsl_matrix* img, size_t rows, size_t cols);
+gsl_matrix* unite_image(gsl_matrix** arr, size_t rows, size_t cols);
+gsl_matrix** encode(gsl_matrix* img, gsl_matrix* weights, size_t rows, size_t cols);
+gsl_matrix* decode(gsl_matrix** compressed, gsl_matrix* src, gsl_matrix* weights, size_t rows, size_t cols);
+double train(gsl_matrix* img, gsl_matrix* encode_weights, gsl_matrix* decode_weights, size_t m, size_t n);
 
 #endif

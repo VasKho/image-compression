@@ -1,6 +1,6 @@
 CC := gcc
 CFLAGS = -O2
-LSO := -lpng -lm
+LSO := -lpng -lm -lgsl -lgslcblas
 
 BUILD_DIR := .
 SRC_DIRS := ./src
