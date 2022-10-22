@@ -1,6 +1,7 @@
 #include "neural_network.h"
 
-double decode_alpha = 5e-8;
+/* double decode_alpha = 5e-6; */
+double decode_alpha = 0.0001;
 
 gsl_matrix* generate_weights(size_t rows, size_t cols) {
   srand(time(0));
@@ -59,6 +60,13 @@ size_t get_num_of_parts_splitted(gsl_matrix* A, size_t rows, size_t cols) {
   return ceil(A->size2/(double)cols) * ceil(A->size1/(double)rows);
 }
 
+gsl_matrix* inline_transform_submatrix(gsl_matrix* img, size_t row_ind, size_t col_ind, size_t rows, size_t cols) {
+  gsl_matrix_const_view view = gsl_matrix_const_submatrix(img, row_ind, col_ind, rows, cols);
+  gsl_matrix* temp = gsl_matrix_alloc(view.matrix.size1, view.matrix.size2);
+  gsl_matrix_memcpy(temp, &view.matrix);
+  return gsl_matrix_reshape(temp, 1, temp->size1*temp->size2);
+}
+
 gsl_matrix** split_image(gsl_matrix* img, size_t rows, size_t cols) { 
   cols *= 3;
   size_t num_of_parts = get_num_of_parts_splitted(img, rows, cols);
@@ -70,28 +78,20 @@ gsl_matrix** split_image(gsl_matrix* img, size_t rows, size_t cols) {
       for (size_t col_ind = 0; col_ind < img->size2; col_ind += cols) { 
 	if (col_ind + cols >= img->size2) {
 	  col_ind = img->size2 - col_ind + cols;
-	  gsl_matrix_const_view view = gsl_matrix_const_submatrix(img, row_ind, col_ind, rows, cols);
-	  result[part] = gsl_matrix_alloc(view.matrix.size1, view.matrix.size2);
-	  gsl_matrix_memcpy(result[part++], &view.matrix);
+	  result[part++] = inline_transform_submatrix(img, row_ind, col_ind, rows, cols);
 	  break;
 	}
-	gsl_matrix_const_view view = gsl_matrix_const_submatrix(img, row_ind, col_ind, rows, cols);
-	result[part] = gsl_matrix_alloc(view.matrix.size1, view.matrix.size2);
-	gsl_matrix_memcpy(result[part++], &view.matrix);
+	result[part++] = inline_transform_submatrix(img, row_ind, col_ind, rows, cols);
       } 
       break; 
     } 
     for (size_t col_ind = 0; col_ind < img->size2; col_ind += cols) {
       if (col_ind + cols >= img->size2) {
 	col_ind = img->size2 - col_ind + cols;
-	gsl_matrix_const_view view = gsl_matrix_const_submatrix(img, row_ind, col_ind, rows, cols);
-	result[part] = gsl_matrix_alloc(view.matrix.size1, view.matrix.size2);
-	gsl_matrix_memcpy(result[part++], &view.matrix);
+	result[part++] = inline_transform_submatrix(img, row_ind, col_ind, rows, cols);
 	break; 
       }
-      gsl_matrix_const_view view = gsl_matrix_const_submatrix(img, row_ind, col_ind, rows, cols);
-      result[part] = gsl_matrix_alloc(view.matrix.size1, view.matrix.size2);
-      gsl_matrix_memcpy(result[part++], &view.matrix);
+      result[part++] = inline_transform_submatrix(img, row_ind, col_ind, rows, cols);
     } 
   }  
   return result;  
@@ -136,9 +136,7 @@ gsl_matrix** encode(gsl_matrix* img, gsl_matrix* weights, size_t rows, size_t co
   gsl_matrix** splitted_img = split_image(img, rows, cols/3);
   gsl_matrix** out_mtx = calloc(num_of_parts, sizeof(gsl_matrix*));
   for (size_t i = 0; i < num_of_parts; ++i) {
-    gsl_matrix* transformed = gsl_matrix_reshape(splitted_img[i], 1, rows*cols);
-    out_mtx[i] = gsl_matrix_multiply(transformed, weights);
-    gsl_matrix_free(transformed);
+    out_mtx[i] = gsl_matrix_multiply(splitted_img[i], weights);
   }
   for (size_t i = 0; i < num_of_parts; ++i) {
     gsl_matrix_free(splitted_img[i]);
@@ -189,20 +187,19 @@ void modify_input_weights(gsl_matrix* encode_weights, gsl_matrix* decode_weights
 }
 
 gsl_matrix* modify_weights(gsl_matrix* img, gsl_matrix* encode_weights, gsl_matrix* decode_weights) {
-  gsl_matrix* transformed = gsl_matrix_reshape(img, 1, img->size1*img->size2);
-  gsl_matrix* encoded = gsl_matrix_multiply(transformed, encode_weights);
+  gsl_matrix* encoded = gsl_matrix_multiply(img, encode_weights);
   gsl_matrix* decoded = gsl_matrix_multiply(encoded, decode_weights);
-  gsl_matrix_sub(decoded, transformed); // Now decoded stores error matrix
+  gsl_matrix* error = gsl_matrix_alloc(decoded->size1, decoded->size2);
+  gsl_matrix_memcpy(error, decoded);
+  gsl_matrix_sub(error, img); // Now decoded stores error matrix
   gsl_matrix* output_transposed = gsl_matrix_alloc(encoded->size2, encoded->size1);
-  gsl_matrix_transpose_memcpy(output_transposed, encoded); 
-  gsl_matrix* out_mul = gsl_matrix_multiply(encoded, output_transposed); 
-  modify_output_weights(decode_weights, decode_alpha, output_transposed, decoded); 
-  modify_input_weights(encode_weights, decode_weights, decode_alpha, decoded, transformed); 
-  gsl_matrix_free(transformed);
-  gsl_matrix_free(encoded); 
-  gsl_matrix_free(output_transposed); 
-  gsl_matrix_free(out_mul);
-  return decoded;
+  gsl_matrix_transpose_memcpy(output_transposed, encoded);
+  modify_output_weights(decode_weights, decode_alpha, output_transposed, error);
+  modify_input_weights(encode_weights, decode_weights, decode_alpha, error, img);
+  gsl_matrix_free(encoded);
+  gsl_matrix_free(decoded);
+  gsl_matrix_free(output_transposed);
+  return error;
 } 
 
 double avg_error(gsl_matrix* error) { 
@@ -210,8 +207,8 @@ double avg_error(gsl_matrix* error) {
   for (size_t row = 0; row < error->size1; ++row) { 
     for (size_t col = 0; col < error->size2; ++col) { 
       avg += gsl_matrix_get(error, row, col) * gsl_matrix_get(error, row, col); 
-    } 
-  } 
+    }
+  }
   return avg; 
 } 
 
@@ -221,14 +218,13 @@ double train(gsl_matrix* img, gsl_matrix* encode_weights, gsl_matrix* decode_wei
   double sum_avg_error = 0;
   for (size_t part = 0; part < num_of_parts; ++part) {
     gsl_matrix* error = modify_weights(splitted_img[part], encode_weights, decode_weights);
-    matrix_print(error);
     sum_avg_error += avg_error(error);
-    printf("%d: %lf\n", part, sum_avg_error);
-    gsl_matrix_free(error); 
+    /* printf("%d: %lf\n", part, sum_avg_error); */
+    gsl_matrix_free(error);
   } 
   for (size_t i = 0; i < num_of_parts; ++i) { 
     gsl_matrix_free(splitted_img[i]); 
   } 
   free(splitted_img); 
   return sum_avg_error; 
-} 
+}

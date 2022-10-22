@@ -59,10 +59,10 @@ int action_train(char* path_to_images, char* path_to_weights, size_t rows, size_
       return -1; 
     } 
     char* path = calloc(2048, sizeof(char)); 
-    char temp; 
-    while (!feof(pipe)) { 
-      temp = fgetc(pipe); 
-      if (temp != '\n') { 
+    char temp;
+    while (!feof(pipe)) {
+      temp = fgetc(pipe);
+      if (temp != '\n') {
 	strncat(path, &temp, 1); 
       } else { 
 	printf("%s\n", path); 
@@ -91,17 +91,17 @@ int action_test(char* path_to_image, char* path_to_weights, size_t rows, size_t 
   gsl_matrix* weightsT = gsl_matrix_alloc(cols, rows); 
   load_weights(path_to_weights, weights, weightsT); 
   gsl_matrix** encoded = encode(image, weights, n, m); 
-  gsl_matrix* decoded = decode(encoded, image, weightsT, n, m); 
-  matrix_denormalize_colors(decoded); 
-  png_write_from_matrix("out.png", decoded); 
-  gsl_matrix_free(image); 
-  gsl_matrix_free(weights); 
-  gsl_matrix_free(weightsT); 
-  gsl_matrix_free(decoded); 
-  size_t num_of_parts = get_num_of_parts_splitted(image, n, m*3); 
-  for (size_t i = 0; i < num_of_parts; ++i) { 
-    gsl_matrix_free(encoded[i]); 
-  } 
-  free(encoded); 
+  gsl_matrix* decoded = decode(encoded, image, weightsT, n, m);
+  matrix_denormalize_colors(decoded);
+  png_write_from_matrix("out.png", decoded);
+  size_t num_of_parts = get_num_of_parts_splitted(image, n, 3*m);
+  gsl_matrix_free(image);
+  gsl_matrix_free(weights);
+  gsl_matrix_free(weightsT);
+  gsl_matrix_free(decoded);
+  for (size_t i = 0; i < num_of_parts; ++i) {
+    gsl_matrix_free(encoded[i]);
+  }
+  free(encoded);
   return 0; 
 } 

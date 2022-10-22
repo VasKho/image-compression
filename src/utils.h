@@ -3,6 +3,7 @@
 
 #include <stdio.h>
 #include <gsl/gsl_matrix.h>
+#include <gsl/gsl_blas.h>
 #include <png.h>
 
 gsl_matrix* png_read_to_matrix(char* file_name);

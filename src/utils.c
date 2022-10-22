@@ -76,16 +76,21 @@ void matrix_denormalize_colors(gsl_matrix* mtx) {
 }
 
 gsl_matrix* gsl_matrix_multiply(gsl_matrix* A, gsl_matrix* B) {
-  gsl_matrix* C = gsl_matrix_alloc(A->size1, B->size2); 
-  for (size_t A_row_ind = 0; A_row_ind < A->size1; ++A_row_ind) { 
-    for (size_t col_ind = 0; col_ind < B->size2; ++col_ind) { 
-      for (size_t B_row_ind = 0; B_row_ind < B->size1; ++B_row_ind) {
-	double temp = gsl_matrix_get(C, A_row_ind, col_ind);
-	gsl_matrix_set(C, A_row_ind, col_ind, temp+gsl_matrix_get(A, A_row_ind, B_row_ind)*gsl_matrix_get(B, B_row_ind, col_ind)); 
-      } 
-    } 
-  } 
-  return C; 
+  gsl_matrix* C = gsl_matrix_alloc(A->size1, B->size2);
+  gsl_blas_dgemm(CblasNoTrans, CblasNoTrans, 1.0, A, B, 0.0, C);
+  /* for (size_t A_row_ind = 0; A_row_ind < A->size1; ++A_row_ind) {  */
+    /* for (size_t col_ind = 0; col_ind < B->size2; ++col_ind) {  */
+      /* for (size_t B_row_ind = 0; B_row_ind < B->size1; ++B_row_ind) { */
+	/* printf("%lf\n%lf\n%lf\n", */
+	       /* gsl_matrix_get(C, A_row_ind, col_ind), */
+	       /* gsl_matrix_get(A, A_row_ind, B_row_ind), */
+	       /* gsl_matrix_get(B, B_row_ind, col_ind)); */
+	/* double temp = gsl_matrix_get(C, A_row_ind, col_ind); */
+	/* gsl_matrix_set(C, A_row_ind, col_ind, temp+gsl_matrix_get(A, A_row_ind, B_row_ind)*gsl_matrix_get(B, B_row_ind, col_ind));  */
+      /* }  */
+    /* }  */
+  /* } */
+  return C;
 } 
 
 gsl_matrix* gsl_matrix_reshape(gsl_matrix* A, size_t new_rows, size_t new_cols) {
