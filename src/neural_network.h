@@ -18,7 +18,7 @@ size_t get_num_of_parts_splitted(gsl_matrix* A, size_t rows, size_t cols);
 gsl_matrix** split_image(gsl_matrix* img, network_params params);
 gsl_matrix* unite_image(gsl_matrix** arr, size_t out_rows, size_t out_cols);
 gsl_matrix** encode(gsl_matrix* img, gsl_matrix* weights, network_params params);
-gsl_matrix* decode(gsl_matrix** compressed, gsl_matrix* src, gsl_matrix* weights, network_params params);
+gsl_matrix* decode(gsl_matrix** compressed, gsl_matrix* weights, size_t num_of_parts, size_t out_rows, size_t out_cols, network_params params);
 double train(gsl_matrix* img, gsl_matrix* encode_weights, gsl_matrix* decode_weights, network_params params, double aplha);
 
 #endif

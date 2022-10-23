@@ -101,17 +101,16 @@ gsl_matrix** encode(gsl_matrix* img, gsl_matrix* weights, network_params params)
   return out_mtx;
 } 
 
-gsl_matrix* decode(gsl_matrix** compressed, gsl_matrix* img, gsl_matrix* weights, network_params params) { 
+gsl_matrix* decode(gsl_matrix** compressed, gsl_matrix* weights, size_t num_of_parts, size_t out_rows, size_t out_cols, network_params params) { 
   size_t rows = params.block_rows;
   size_t cols = params.block_cols*3;
-  size_t num_of_parts = get_num_of_parts_splitted(img, rows, cols);
   gsl_matrix** out_mtx = calloc(num_of_parts, sizeof(gsl_matrix*)); 
   for (size_t i = 0; i < num_of_parts; ++i) {
     gsl_matrix* temp_out = gsl_matrix_multiply(compressed[i], weights);
     out_mtx[i] = gsl_matrix_reshape(temp_out, rows, cols);
     gsl_matrix_free(temp_out);
   }
-  gsl_matrix* new_img = unite_image(out_mtx, img->size1, img->size2);
+  gsl_matrix* new_img = unite_image(out_mtx, out_rows, out_cols);
   for (size_t i = 0; i < num_of_parts; ++i) {
     gsl_matrix_free(out_mtx[i]);
   }

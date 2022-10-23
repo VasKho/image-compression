@@ -18,6 +18,20 @@ int main(int argc, char* argv[]) {
     }
     return action_generate(argv[2], params);
   }
+  if (strncmp("encode", argv[1], strlen("encode")) == 0) {
+    if (argc < 5) {
+      printf("Wrong number of arguments. Exitting program!\n");
+      return 1;
+    }
+    return action_compress(argv[2], argv[3], argv[4]);
+  }
+  if (strncmp("decode", argv[1], strlen("decode")) == 0) {
+    if (argc < 5) {
+      printf("Wrong number of arguments. Exitting program!\n");
+      return 1;
+    }
+    return action_decompress(argv[2], argv[3], argv[4]);
+  }
   if (strncmp("train", argv[1], strlen("train")) == 0) {
     double alpha = default_aplpha;
     double error = default_error;
