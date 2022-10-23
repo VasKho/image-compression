@@ -45,11 +45,11 @@ int main(int argc, char* argv[]) {
     return action_train(argv[2], argv[3], error, alpha);
   }
   if (strncmp("test", argv[1], strlen("test")) == 0) {
-    if (argc < 4) {
+    if (argc < 5) {
       printf("Wrong number of arguments. Exitting program!\n");
       return 1;
     }
-    return action_test(argv[2], argv[3]);
+    return action_test(argv[2], argv[3], argv[4]);
   }
   return 0;
 }

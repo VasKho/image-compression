@@ -93,7 +93,8 @@ int action_decompress(char* path_to_input, char* path_to_weights, char* path_to_
     gsl_matrix_fread(f_in, compressed[i]);
   }
   fclose(f_in); 
-  gsl_matrix* decompressed = decode(compressed, weights, num_of_parts, out_rows, out_cols, params); 
+  gsl_matrix* decompressed = decode(compressed, weights, num_of_parts, out_rows, out_cols, params);
+  matrix_normalize_colors(decompressed);
   png_write_from_matrix(path_to_output, decompressed); 
   for (size_t i = 0; i < num_of_parts; ++i) { 
     gsl_matrix_free(compressed[i]); 
@@ -148,17 +149,17 @@ int action_train(char* path_to_images, char* path_to_weights, double error, doub
   return 0; 
 } 
 
-int action_test(char* path_to_image, char* path_to_weights) {
+int action_test(char* path_to_image, char* path_to_weights, char* path_to_output) {
   network_params params;
   gsl_matrix* image = png_read_to_matrix(path_to_image);
-  size_t num_of_parts = get_num_of_parts_splitted(image, params.block_rows, 3*params.block_cols);
   matrix_normalize_colors(image);
   gsl_matrix* weights, *weightsT;
   load_weights(path_to_weights, &weights, &weightsT, &params);
+  size_t num_of_parts = get_num_of_parts_splitted(image, params.block_rows, 3*params.block_cols);
   gsl_matrix** encoded = encode(image, weights, params);
   gsl_matrix* decoded = decode(encoded, weightsT, num_of_parts, image->size1, image->size2, params);
   matrix_denormalize_colors(decoded);
-  png_write_from_matrix("out.png", decoded);
+  png_write_from_matrix(path_to_output, decoded);
   gsl_matrix_free(image);
   gsl_matrix_free(weights);
   gsl_matrix_free(weightsT);
