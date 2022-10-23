@@ -7,6 +7,13 @@
 #include <math.h>
 #include "utils.h"
 
+typedef struct {
+  size_t block_rows;
+  size_t block_cols;
+  size_t compression;
+  double error;
+} network_params;
+
 gsl_matrix* generate_weights(size_t rows, size_t cols);
 void load_weights(char* path, gsl_matrix* dest_encode, gsl_matrix* dest_decode);
 int save_weights(char* path, gsl_matrix* src_encode, gsl_matrix* src_decode);
