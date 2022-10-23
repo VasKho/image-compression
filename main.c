@@ -2,17 +2,40 @@
 #include <string.h>
 #include <stdio.h>
 
-network_params default_params = {8, 8, 6, 0.15};
+network_params default_params = {8, 8, 6};
+double default_error = 0.15;
+double default_aplpha = 0.0005;
 
 int main(int argc, char* argv[]) {
   if (strncmp("generate", argv[1], strlen("generate")) == 0) {
-    return action_generate(argv[2], default_params);
+    network_params params = default_params;
+    if (argc >= 6) {
+      sscanf(argv[3], "%zu", &params.block_rows);
+      sscanf(argv[4], "%zu", &params.block_cols);
+      sscanf(argv[5], "%zu", &params.compression);
+    } else {
+      printf("Less than 4 arguments were given. Default params will be used.\n");
+    }
+    return action_generate(argv[2], params);
   }
   if (strncmp("train", argv[1], strlen("train")) == 0) {
-    return action_train(argv[2], argv[3], default_params);
+    double alpha = default_aplpha;
+    double error = default_error;
+    if (argc < 4) {
+      printf("Wrong number of arguments. Exitting program!\n");
+      return 1;
+    } else {
+      /* if (argc >= 4) sscanf(argv[4], "%lf", &error); */
+      /* if (argc >= 5) sscanf(argv[5], "%lf", &alpha); */
+    }
+    return action_train(argv[2], argv[3], error, alpha);
   }
   if (strncmp("test", argv[1], strlen("test")) == 0) {
-    return action_test(argv[2], argv[3], default_params);
+    if (argc < 4) {
+      printf("Wrong number of arguments. Exitting program!\n");
+      return 1;
+    }
+    return action_test(argv[2], argv[3]);
   }
   return 0;
 }
