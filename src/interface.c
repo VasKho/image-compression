@@ -46,7 +46,7 @@ int action_train(char* path_to_images, char* path_to_weights, double error, doub
   load_weights(path_to_weights, &weights, &weightsT, &params);
   char command_prefix[] = "find "; 
   char command_postfix[] = " -type f -name '*.png'"; 
-  char* command = calloc(strlen(command_prefix)+strlen(path_to_images)+strlen(command_postfix), sizeof(char)); 
+  char* command = calloc(strlen(command_prefix)+strlen(path_to_images)+strlen(command_postfix)+1, sizeof(char)); 
   strcat(command, command_prefix); 
   strcat(command, path_to_images); 
   strcat(command, command_postfix); 
@@ -91,16 +91,16 @@ int action_test(char* path_to_image, char* path_to_weights) {
   load_weights(path_to_weights, &weights, &weightsT, &params);
   gsl_matrix** encoded = encode(image, weights, params);
   gsl_matrix* decoded = decode(encoded, image, weightsT, params);
-  /* matrix_denormalize_colors(decoded); */
-  /* png_write_from_matrix("out.png", decoded); */
-  /* size_t num_of_parts = get_num_of_parts_splitted(image, params.block_rows, 3*params.block_cols); */
-  /* gsl_matrix_free(image); */
-  /* gsl_matrix_free(weights); */
-  /* gsl_matrix_free(weightsT); */
-  /* gsl_matrix_free(decoded); */
-  /* for (size_t i = 0; i < num_of_parts; ++i) { */
-    /* gsl_matrix_free(encoded[i]); */
-  /* } */
-  /* free(encoded); */
+  matrix_denormalize_colors(decoded);
+  png_write_from_matrix("out.png", decoded);
+  size_t num_of_parts = get_num_of_parts_splitted(image, params.block_rows, 3*params.block_cols);
+  gsl_matrix_free(image);
+  gsl_matrix_free(weights);
+  gsl_matrix_free(weightsT);
+  gsl_matrix_free(decoded);
+  for (size_t i = 0; i < num_of_parts; ++i) {
+    gsl_matrix_free(encoded[i]);
+  }
+  free(encoded);
   return 0; 
 }

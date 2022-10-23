@@ -25,8 +25,8 @@ int main(int argc, char* argv[]) {
       printf("Wrong number of arguments. Exitting program!\n");
       return 1;
     } else {
-      /* if (argc >= 4) sscanf(argv[4], "%lf", &error); */
-      /* if (argc >= 5) sscanf(argv[5], "%lf", &alpha); */
+      if (argc > 4) sscanf(argv[4], "%lf", &error);
+      if (argc >= 6) sscanf(argv[5], "%lf", &alpha);
     }
     return action_train(argv[2], argv[3], error, alpha);
   }

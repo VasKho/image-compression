@@ -11,14 +11,6 @@ gsl_matrix* generate_weights(size_t rows, size_t cols) {
   return weights;
 }
 
-size_t get_num_of_h_splitted(gsl_matrix* A, size_t cols) {
-  return ceil(A->size2/(double)cols);
-}
-
-size_t get_num_of_v_splitted(gsl_matrix* A, size_t rows) {
-  return ceil(A->size1/(double)rows);
-}
-
 size_t get_num_of_parts_splitted(gsl_matrix* A, size_t rows, size_t cols) {
   return ceil(A->size2/(double)cols) * ceil(A->size1/(double)rows);
 }
@@ -27,7 +19,9 @@ gsl_matrix* inline_transform_submatrix(gsl_matrix* img, size_t row_ind, size_t c
   gsl_matrix_const_view view = gsl_matrix_const_submatrix(img, row_ind, col_ind, rows, cols);
   gsl_matrix* temp = gsl_matrix_alloc(view.matrix.size1, view.matrix.size2);
   gsl_matrix_memcpy(temp, &view.matrix);
-  return gsl_matrix_reshape(temp, 1, temp->size1*temp->size2);
+  gsl_matrix* result = gsl_matrix_reshape(temp, 1, temp->size1*temp->size2);
+  gsl_matrix_free(temp);
+  return result;
 }
 
 gsl_matrix** split_image(gsl_matrix* img, network_params params) { 
@@ -95,8 +89,6 @@ gsl_matrix** encode(gsl_matrix* img, gsl_matrix* weights, network_params params)
   size_t rows = params.block_rows;
   size_t cols = params.block_cols*3;
   size_t num_of_parts = get_num_of_parts_splitted(img, rows, cols); 
-  size_t num_of_v_parts = get_num_of_v_splitted(img, rows); 
-  size_t num_of_h_parts = get_num_of_h_splitted(img, cols); 
   gsl_matrix** splitted_img = split_image(img, params);
   gsl_matrix** out_mtx = calloc(num_of_parts, sizeof(gsl_matrix*));
   for (size_t i = 0; i < num_of_parts; ++i) {
@@ -113,8 +105,6 @@ gsl_matrix* decode(gsl_matrix** compressed, gsl_matrix* img, gsl_matrix* weights
   size_t rows = params.block_rows;
   size_t cols = params.block_cols*3;
   size_t num_of_parts = get_num_of_parts_splitted(img, rows, cols);
-  size_t num_of_v_parts = get_num_of_v_splitted(img, rows);
-  size_t num_of_h_parts = get_num_of_h_splitted(img, cols);
   gsl_matrix** out_mtx = calloc(num_of_parts, sizeof(gsl_matrix*)); 
   for (size_t i = 0; i < num_of_parts; ++i) {
     gsl_matrix* temp_out = gsl_matrix_multiply(compressed[i], weights);
